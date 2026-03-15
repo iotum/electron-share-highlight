@@ -1,0 +1,51 @@
+{
+  "name": "electron-share-highlight",
+  "version": "1.0.0",
+  "description": "Drop-in plugin to draw a highlight border around the screen or window being shared in Electron apps",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "exports": {
+    ".": {
+      "main": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    },
+    "./preload": {
+      "main": "./dist/preload.js",
+      "types": "./dist/preload.d.ts"
+    },
+    "./renderer": {
+      "main": "./dist/renderer.js",
+      "types": "./dist/renderer.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "assets/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "electron",
+    "screenshare",
+    "screen-share",
+    "highlight",
+    "overlay",
+    "webrtc",
+    "capture"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "electron": ">=20.0.0"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "optionalDependencies": {
+    "node-window-manager": "^2.2.4"
+  }
+}
