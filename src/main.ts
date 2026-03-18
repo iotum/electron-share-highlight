@@ -239,7 +239,7 @@ async function resolveWindowBounds(sourceId: string): Promise<SourceBounds | nul
 
     if (win) {
       const b = win.getBounds();
-      return { x: b.x, y: b.y, width: b.width, height: b.height };
+      return { x: b.x ?? 0, y: b.y ?? 0, width: b.width ?? 0, height: b.height ?? 0 };
     }
   } catch {
     // node-window-manager not available — fall through to fallback
