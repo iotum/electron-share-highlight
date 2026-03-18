@@ -6,16 +6,19 @@
   "types": "dist/main.d.ts",
   "exports": {
     ".": {
-      "main": "./dist/main.js",
-      "types": "./dist/main.d.ts"
+      "types": "./dist/main.d.ts",
+      "require": "./dist/main.js",
+      "default": "./dist/main.js"
     },
     "./preload": {
-      "main": "./dist/preload.js",
-      "types": "./dist/preload.d.ts"
+      "types": "./dist/preload.d.ts",
+      "require": "./dist/preload.js",
+      "default": "./dist/preload.js"
     },
     "./renderer": {
-      "main": "./dist/renderer.js",
-      "types": "./dist/renderer.d.ts"
+      "types": "./dist/renderer.d.ts",
+      "require": "./dist/renderer.js",
+      "default": "./dist/renderer.js"
     }
   },
   "files": [
