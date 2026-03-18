@@ -25,10 +25,10 @@ jobs:
         run: npm run build
 
       - name: Archive build output
-        run: tar -czf package.tar.gz ./
+        run: tar --exclude='package.tgz' -czf package.tgz ./
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: package.tar.gz
+          files: package.tgz
