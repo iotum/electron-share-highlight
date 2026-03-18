@@ -225,30 +225,29 @@ async function resolveScreenBounds(sourceId: string): Promise<SourceBounds | nul
 }
 
 async function resolveWindowBounds(sourceId: string): Promise<SourceBounds | null> {
+  // sourceId format: "window:<pid>:<nativeHandle>" (varies by platform)
+  const parts  = sourceId.split(':');
+  const handle = parseInt(parts[2] ?? parts[1], 10);
+
   // Try node-window-manager (optional dep) first
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     const { windowManager } = require('node-window-manager') as typeof import('node-window-manager');
-
-    // sourceId format: "window:<pid>:<nativeHandle>" (varies by platform)
-    const parts  = sourceId.split(':');
-    const handle = parseInt(parts[2] ?? parts[1], 10);
 
     const windows = windowManager.getWindows();
     const win     = windows.find((w: { id: number }) => w.id === handle);
 
     if (win) {
       const b = win.getBounds();
-      return { x: b.x, y: b.y, width: b.width, height: b.height };
+      if (b.x != null && b.y != null && b.width != null && b.height != null) {
+        return { x: b.x, y: b.y, width: b.width, height: b.height };
+      }
     }
   } catch {
     // node-window-manager not available — fall through to fallback
   }
 
   // Fallback: match against existing BrowserWindows (works for Electron-owned windows)
-  const parts  = sourceId.split(':');
-  const handle = parseInt(parts[2] ?? parts[1], 10);
-
   for (const win of BrowserWindow.getAllWindows()) {
     if ((win as any).getNativeWindowHandle?.()?.readUInt32LE?.(0) === handle) {
       const [x, y] = win.getPosition();
@@ -257,7 +256,38 @@ async function resolveWindowBounds(sourceId: string): Promise<SourceBounds | nul
     }
   }
 
+  // Platform fallback: on macOS, getDisplayMedia / getUserMedia can return special
+  // device IDs with negative handles (e.g. "window:-4:-1") that don't correspond to
+  // any real native window. When this happens, fall back to resolving against the
+  // available screen sources so the highlight can still be shown.
+  if (handle < 0) {
+    return resolveScreenFallback();
+  }
+
   return null;
+}
+
+async function resolveScreenFallback(): Promise<SourceBounds | null> {
+  try {
+    const sources  = await desktopCapturer.getSources({ types: ['screen'] });
+    const displays: Display[] = screen.getAllDisplays();
+
+    if (sources.length === 0) return null;
+
+    // With a single screen there is no ambiguity — use it directly.
+    // With multiple screens, pick the primary display as the best guess.
+    const singleSource = sources.length === 1 ? sources[0] : undefined;
+    // display_id is present on the source object but not in the Electron typedefs yet
+    const displayId = singleSource ? (singleSource as any).display_id as string | undefined : undefined;
+
+    const display = displayId
+      ? displays.find(d => String(d.id) === displayId) ?? screen.getPrimaryDisplay()
+      : screen.getPrimaryDisplay();
+
+    return display.bounds;
+  } catch {
+    return null;
+  }
 }
 
 function mergeOptions(opts: ShareHighlightOptions): Required<ShareHighlightOptions> {
